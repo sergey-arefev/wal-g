@@ -1,0 +1,3 @@
+FROM wal-g/pg:latest
+
+COPY docker/pg_tests/scripts/ /tmp

@@ -623,6 +623,14 @@ services:
     links:
       - s3
 
+  pg_test_init_db:
+    build:
+      dockerfile: docker/pg_tests/Dockerfile_pg_test_init_db
+      context: .
+    image: wal-g/pg_test_init_db
+    user: postgres
+    command: /tmp/tests/initdb_test.sh
+
   pg_daemon_test:
     build:
       dockerfile: docker/pg_tests/Dockerfile_daemon_test

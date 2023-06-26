@@ -45,7 +45,7 @@ pg_build: $(CMD_FILES) $(PKG_FILES)
 install_and_build_pg: deps pg_build
 
 pg_build_image:
-	docker-compose build $(DOCKER_COMMON) pg pg_build_docker_prefix
+	docker-compose build $(DOCKER_COMMON) pg
 
 pg_save_image: install_and_build_pg pg_build_image
 	mkdir -p ${CACHE_FOLDER}
@@ -58,7 +58,6 @@ pg_save_image: install_and_build_pg pg_build_image
 pg_integration_test:
 	@if [ "x" = "${CACHE_FILE_DOCKER_PREFIX}x" ]; then\
 		echo "Rebuild";\
-		make install_and_build_pg;\
 		make pg_build_image;\
 	else\
 		docker load -i ${CACHE_FILE_DOCKER_PREFIX};\
