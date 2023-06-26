@@ -16,53 +16,6 @@ env:
   GO_VERSION: "1.20"
 
 jobs:
-  buildimages:
-    name: Build images
-    runs-on: ubuntu-20.04
-    steps:
-      #  use cache to pass docker images to the test jobs
-      - name: Docker images caching
-        id: cache-images
-        uses: actions/cache@v3
-        with:
-          path: |
-            ${{ env.CACHE_FILE_DOCKER_PREFIX }}
-            ${{ env.CACHE_FILE_UBUNTU }}
-            ${{ env.CACHE_FILE_GOLANG }}
-          key: ${{ env.IMAGES_CACHE_KEY }}
-
-      - name: Install deps
-        if: steps.cache-images.outputs.cache-hit != 'true'
-        run: sudo apt-get install liblzo2-dev
-
-      - name: Check out code into the Go module directory
-        if: steps.cache-images.outputs.cache-hit != 'true'
-        uses: actions/checkout@v3
-
-      - name: Set up Go 1.x
-        if: steps.cache-images.outputs.cache-hit != 'true'
-        uses: actions/setup-go@v4
-        with:
-          go-version: ${{ env.GO_VERSION }}
-        id: go
-
-      - name: Get dependencies
-        if: steps.cache-images.outputs.cache-hit != 'true'
-        run: |
-          go get -v -t -d ./...
-          if [ -f Gopkg.toml ]; then
-           curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
-           dep ensure
-          fi
-
-      # build images
-      - name: Build images
-        if: steps.cache-images.outputs.cache-hit != 'true'
-        run: make pg_save_image
-    env:
-      USE_BROTLI: 1
-      USE_LZO: 1
-
   test:
     name: test
     runs-on: ubuntu-20.04
@@ -75,42 +28,8 @@ jobs:
       # do not cancel all tests if one failed
       fail-fast: false
     steps:
-      - name: Install deps
-        run: sudo apt-get install liblzo2-dev
-
       - name: Check out code into the Go module directory
         uses: actions/checkout@v3
-
-      - name: Set up Go 1.x
-        uses: actions/setup-go@v4
-        with:
-          go-version: ${{ env.GO_VERSION }}
-        id: go
-
-      - name: Get dependencies
-        run: |
-          go get -v -t -d ./...
-          if [ -f Gopkg.toml ]; then
-           curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
-           dep ensure
-          fi
-
-      # load docker images
-      - name: Load docker images
-        id: cache-images
-        uses: actions/cache@v3
-        with:
-          path: |
-            ${{ env.CACHE_FILE_DOCKER_PREFIX }}
-            ${{ env.CACHE_FILE_UBUNTU }}
-            ${{ env.CACHE_FILE_GOLANG }}
-          key: ${{ env.IMAGES_CACHE_KEY }}
-
-      - name: Fail if no cached images
-        if: steps.cache-images.outputs.cache-hit != 'true'
-        run: |
-          echo "Failed to fetch cached docker images. Will now exit..."
-          exit 1
 
       - name: Run test
         run: ${{ matrix.command }}

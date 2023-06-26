@@ -56,15 +56,8 @@ pg_save_image: install_and_build_pg pg_build_image
 	ls ${CACHE_FOLDER}
 
 pg_integration_test:
-	@if [ "x" = "${CACHE_FILE_DOCKER_PREFIX}x" ]; then\
-		echo "Rebuild";\
-		make pg_build_image;\
-	else\
-		docker load -i ${CACHE_FILE_DOCKER_PREFIX};\
-	fi
-	@if echo "$(TEST)" | grep -Fqe "pgbackrest"; then\
-		docker-compose build pg_pgbackrest;\
-	fi
+	echo "Rebuild"
+	make pg_build_image
 	docker-compose build $(TEST)
 	docker-compose up --exit-code-from $(TEST) $(TEST)
 
